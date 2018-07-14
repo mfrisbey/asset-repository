@@ -16,7 +16,10 @@
     "assets",
     "acp"
   ],
-  "repository": "https://github.com/mfrisbey/asset-repository",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mfrisbey/asset-repository"
+  },
   "author": "Mark Frisbey",
   "license": "Apache-2.0",
   "dependencies": {
