@@ -1,0 +1,30 @@
+{
+  "name": "asset-repository",
+  "version": "0.0.1",
+  "description": "Interact with assets in a remote repository",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --recursive",
+    "start": "node ./index.js"
+  },
+  "keywords": [
+    "adobe",
+    "aem",
+    "adobe",
+    "experience",
+    "manager",
+    "assets",
+    "acp"
+  ],
+  "repository": "https://github.com/mfrisbey/asset-repository",
+  "author": "Mark Frisbey",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "async": "^2.6.1",
+    "memorystream": "^0.3.1",
+    "mime": "^2.3.1"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
