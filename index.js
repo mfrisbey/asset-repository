@@ -16,3 +16,4 @@ module.exports.Repository = require('./lib/repository');
 module.exports.InMemoryRepository = require('./lib/backends/in-memory/repository');
 module.exports.Constants = require('./lib/constants');
 module.exports.Utils = require('./lib/utils');
+module.exports.Logger = require('./lib/logger');

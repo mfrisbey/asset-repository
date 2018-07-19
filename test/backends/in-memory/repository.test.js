@@ -467,3 +467,21 @@ it('test intermediate progress', function (done) {
     done();
   });
 }).timeout(5000);
+
+it('test read no progress', function (done) {
+  var repository = getRepository();
+  var stream = getReadStream('no read please');
+  repository.createAsset('/noreadtest.txt', stream, function (err) {
+    assert(!err);
+    repository.on('transferprogress', function () {
+      assert(false);
+    });
+    repository.getAssetThumbnail('/noreadtest.txt', function (err) {
+      assert(!err);
+      repository.getAssetPreview('/noreadtest.txt', function (err) {
+        assert(!err);
+        done();
+      });
+    });
+  });
+});
