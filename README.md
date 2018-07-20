@@ -93,9 +93,10 @@ The repository is an event emitter and provides these events:
 is sent primarily by methods that involve reading an asset's content, including `getAsset`, `createAsset`, and 
 `updateAsset`.
   * _{object} eventData_: provided as an argument for the event.
-    * _{string} type_: The kind of transfer, which could be one of `update`, `create`, or `read`
+    * _{string} path_: Full path of the asset currently transferring
     * _{object} info_: Information for the asset as retrieved by `getInfo`
     * _{object} progress_: Current progress information for the transfer.
+      * _{string} type_: The kind of transfer, which could be one of `update`, `create`, or `read`
       * _{number} read_: The total number of bytes transferred so far.
       * _{number} rate_: The rate at which the asset is transferring, in bytes per millisecond.
 

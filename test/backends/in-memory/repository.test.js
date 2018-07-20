@@ -379,12 +379,12 @@ it('test subscriber', function (done) {
 });
 
 function _verifyProgressEvent(progress, path, type, name, read, rate) {
-  assert(progress.type === type);
   assert(progress.path === path);
   assert(progress.info);
   assert(progress.info.name === name);
   assert(progress.info.type === 'asset');
   assert(progress.progress);
+  assert(progress.progress.type === type);
   assert(progress.progress.read === read);
   if (rate) {
     assert(progress.progress.rate > 0);
@@ -461,10 +461,9 @@ it('test intermediate progress', function (done) {
   });
   repository.createAsset('/frequencytest.txt', stream, function (err) {
     assert(!err);
-    assert(progressCalls.length === 3);
+    assert(progressCalls.length === 2);
     _verifyProgressEvent(progressCalls[0], '/frequencytest.txt', 'create', 'frequencytest.txt', 0);
     _verifyProgressEvent(progressCalls[1], '/frequencytest.txt', 'create', 'frequencytest.txt', 14, true);
-    _verifyProgressEvent(progressCalls[2], '/frequencytest.txt', 'create', 'frequencytest.txt', 14, true);
     done();
   });
 }).timeout(5000);
