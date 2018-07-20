@@ -378,8 +378,9 @@ it('test subscriber', function (done) {
   }, 1000);
 });
 
-function _verifyProgressEvent(progress, type, name, read, rate) {
+function _verifyProgressEvent(progress, path, type, name, read, rate) {
   assert(progress.type === type);
+  assert(progress.path === path);
   assert(progress.info);
   assert(progress.info.name === name);
   assert(progress.info.type === 'asset');
@@ -403,8 +404,8 @@ it('test create progress', function (done) {
   repository.createAsset('/newasset.txt', stream, function (err) {
     assert(!err);
     assert(progressCalls.length === 2);
-    _verifyProgressEvent(progressCalls[0], 'create', 'newasset.txt', 0);
-    _verifyProgressEvent(progressCalls[1], 'create', 'newasset.txt', 13);
+    _verifyProgressEvent(progressCalls[0], '/newasset.txt', 'create', 'newasset.txt', 0);
+    _verifyProgressEvent(progressCalls[1], '/newasset.txt', 'create', 'newasset.txt', 13);
     done();
   });
 });
@@ -422,8 +423,8 @@ it('test update progress', function (done) {
     repository.updateAsset('/newprogressasset.txt', stream, function (err) {
       assert(!err);
       assert(progressCalls.length === 2);
-      _verifyProgressEvent(progressCalls[0], 'update', 'newprogressasset.txt', 0);
-      _verifyProgressEvent(progressCalls[1], 'update', 'newprogressasset.txt', 21);
+      _verifyProgressEvent(progressCalls[0], '/newprogressasset.txt', 'update', 'newprogressasset.txt', 0);
+      _verifyProgressEvent(progressCalls[1], '/newprogressasset.txt', 'update', 'newprogressasset.txt', 21);
       done();
     });
   });
@@ -443,8 +444,8 @@ it('test read progress', function (done) {
       assert(stream);
       stream.on('end', function () {
         assert(progressCalls.length === 2);
-        _verifyProgressEvent(progressCalls[0], 'read', 'readprogresstest.txt', 0);
-        _verifyProgressEvent(progressCalls[1], 'read', 'readprogresstest.txt', 9);
+        _verifyProgressEvent(progressCalls[0], '/readprogresstest.txt', 'read', 'readprogresstest.txt', 0);
+        _verifyProgressEvent(progressCalls[1], '/readprogresstest.txt', 'read', 'readprogresstest.txt', 9);
         done();
       });
     });
@@ -461,9 +462,9 @@ it('test intermediate progress', function (done) {
   repository.createAsset('/frequencytest.txt', stream, function (err) {
     assert(!err);
     assert(progressCalls.length === 3);
-    _verifyProgressEvent(progressCalls[0], 'create', 'frequencytest.txt', 0);
-    _verifyProgressEvent(progressCalls[1], 'create', 'frequencytest.txt', 14, true);
-    _verifyProgressEvent(progressCalls[2], 'create', 'frequencytest.txt', 14, true);
+    _verifyProgressEvent(progressCalls[0], '/frequencytest.txt', 'create', 'frequencytest.txt', 0);
+    _verifyProgressEvent(progressCalls[1], '/frequencytest.txt', 'create', 'frequencytest.txt', 14, true);
+    _verifyProgressEvent(progressCalls[2], '/frequencytest.txt', 'create', 'frequencytest.txt', 14, true);
     done();
   });
 }).timeout(5000);
