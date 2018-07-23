@@ -27,7 +27,7 @@
     "memorystream": "^0.3.1",
     "mime": "^2.3.1",
     "uuid": "^3.3.2",
-    "winston": "^3.0.0"
+    "winston": "2.4.3"
   },
   "devDependencies": {
     "mocha": "^5.2.0"
