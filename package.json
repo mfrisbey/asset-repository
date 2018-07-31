@@ -1,6 +1,6 @@
 {
   "name": "asset-repository",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Interact with assets in a remote repository",
   "main": "index.js",
   "scripts": {
