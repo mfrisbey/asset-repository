@@ -1,6 +1,7 @@
 var assert = require('assert');
 var MemoryStream = require('memorystream');
 
+var utils = require('../../../lib/utils');
 var InMemoryRepository = require('../../../lib/backends/in-memory/repository');
 var constants = require('../../../lib/constants');
 
@@ -16,32 +17,36 @@ function getReadStream(content, options) {
   return new MemoryStream(content, options);
 }
 
+function getPath(path) {
+  return path.replace(/\//g, utils.sep());
+}
+
 it('test directory', function (done) {
   var repository = getRepository();
-  repository.createDirectory('/test', function (err, info) {
+  repository.createDirectory(getPath('/test'), function (err, info) {
     assert(!err);
     assert(info);
-    repository.exists('/test', function (err, exists) {
+    repository.exists(getPath('/test'), function (err, exists) {
       assert(!err);
       assert(exists);
-      repository.list('/', function (err, list) {
+      repository.list(getPath('/'), function (err, list) {
         assert(!err);
         assert(list.length === 1);
         assert(list[0].name === 'test');
         assert(list[0].type === constants.DIR_TYPE);
         assert(list[0].created);
-        repository.list('/test', function (err, list) {
+        repository.list(getPath('/test'), function (err, list) {
           assert(!err);
           assert(list.length === 0);
-          repository.getInfo('/test', function (err, info) {
+          repository.getInfo(getPath('/test'), function (err, info) {
             assert(!err);
             assert(info);
             assert(info.name === 'test');
             assert(info.created);
             assert(info.type === constants.DIR_TYPE);
-            repository.deleteDirectory('/test', function (err) {
+            repository.deleteDirectory(getPath('/test'), function (err) {
               assert(!err);
-              repository.exists('/test', function (err, exists) {
+              repository.exists(getPath('/test'), function (err, exists) {
                 assert(!err);
                 assert(!exists);
                 done();
@@ -56,28 +61,28 @@ it('test directory', function (done) {
 
 it('test directory errors', function (done) {
   var repository = getRepository();
-  repository.createDirectory('/', function (err) {
+  repository.createDirectory(getPath('/'), function (err) {
     assert(err);
-    repository.deleteDirectory('/', function (err) {
+    repository.deleteDirectory(getPath('/'), function (err) {
       assert(err);
-      repository.deleteDirectory('/invalid', function (err) {
+      repository.deleteDirectory(getPath('/invalid'), function (err) {
         assert(err);
-        repository.createDirectory('/invalid/path', function (err) {
+        repository.createDirectory(getPath('/invalid/path'), function (err) {
           assert(err);
-          repository.exists('/noexist', function (err, exists) {
+          repository.exists(getPath('/noexist'), function (err, exists) {
             assert(!err);
             assert(!exists);
-            repository.exists('/noexist/sub', function (err, exists) {
+            repository.exists(getPath('/noexist/sub'), function (err, exists) {
               assert(!err);
               assert(!exists);
-              repository.list('/invalid', function (err, list) {
+              repository.list(getPath('/invalid'), function (err, list) {
                 assert(err);
                 assert(!list);
-                repository.createDirectory('/duplicate', function (err) {
+                repository.createDirectory(getPath('/duplicate'), function (err) {
                   assert(!err);
-                  repository.createDirectory('/duplicate', function (err) {
+                  repository.createDirectory(getPath('/duplicate'), function (err) {
                     assert(err);
-                    repository.getInfo('/invalid', function (err, info) {
+                    repository.getInfo(getPath('/invalid'), function (err, info) {
                       assert(err);
                       assert(!info);
                       done();
@@ -117,14 +122,14 @@ function verifyAssetContent(repository, path, expected, callback) {
 it('test asset', function (done) {
   var repository = getRepository();
   var stream = getReadStream('hello world!');
-  repository.createAsset('/test.txt', stream, function (err, info) {
+  repository.createAsset(getPath('/test.txt'), stream, function (err, info) {
     assert(!err);
     assert(info);
     assert(info.size === 12);
-    repository.getInfo('/test.txt', function (err, info) {
+    repository.getInfo(getPath('/test.txt'), function (err, info) {
       assert(!err);
       assert(info);
-      repository.list('/', function (err, list) {
+      repository.list(getPath('/'), function (err, list) {
         assert(!err);
         assert(list.length === 1);
         assert(list[0].name === 'test.txt');
@@ -135,18 +140,18 @@ it('test asset', function (done) {
         assert(info.size === 12);
         assert(!info.checkedOut);
         assert(!info.checkedOutBy);
-        verifyAssetContent(repository, '/test.txt', 'hello world!', function () {
+        verifyAssetContent(repository, getPath('/test.txt'), 'hello world!', function () {
           stream = getReadStream('goodbye world!');
-          repository.updateAsset('/test.txt', stream, function (err, info) {
+          repository.updateAsset(getPath('/test.txt'), stream, function (err, info) {
             assert(!err);
             assert(info);
-            verifyAssetContent(repository, '/test.txt', 'goodbye world!', function () {
-              repository.getInfo('/test.txt', function (err, info) {
+            verifyAssetContent(repository, getPath('/test.txt'), 'goodbye world!', function () {
+              repository.getInfo(getPath('/test.txt'), function (err, info) {
                 assert(!err);
                 assert(info);
-                repository.deleteAsset('/test.txt', function (err) {
+                repository.deleteAsset(getPath('/test.txt'), function (err) {
                   assert(!err);
-                  repository.exists('/test.txt', function (err, exists) {
+                  repository.exists(getPath('/test.txt'), function (err, exists) {
                     assert(!err);
                     assert(!exists);
                     done();
@@ -163,37 +168,37 @@ it('test asset', function (done) {
 
 it('test asset errors', function (done) {
   var repository = getRepository();
-  repository.createDirectory('/test', function (err) {
+  repository.createDirectory(getPath('/test'), function (err) {
     assert(!err);
     var stream = getReadStream('test');
-    repository.createAsset('/test', stream, function (err) {
+    repository.createAsset(getPath('/test'), stream, function (err) {
       assert(err);
-      repository.createAsset('/invalid/test.txt', stream, function (err) {
+      repository.createAsset(getPath('/invalid/test.txt'), stream, function (err) {
         assert(err);
-        repository.updateAsset('/test', stream, function (err) {
+        repository.updateAsset(getPath('/test'), stream, function (err) {
           assert(err);
-          repository.createAsset('/test/asset.txt', stream, function (err) {
+          repository.createAsset(getPath('/test/asset.txt'), stream, function (err) {
             assert(!err);
-            repository.list('/test/asset.txt', function (err, list) {
+            repository.list(getPath('/test/asset.txt'), function (err, list) {
               assert(err);
               assert(!list);
-              repository.deleteDirectory('/test/asset.txt', function (err) {
+              repository.deleteDirectory(getPath('/test/asset.txt'), function (err) {
                 assert(err);
-                repository.createDirectory('/test/asset.txt/test', function (err) {
+                repository.createDirectory(getPath('/test/asset.txt/test'), function (err) {
                   assert(err);
-                  repository.createAsset('/test/asset.txt/asset.txt', stream, function (err) {
+                  repository.createAsset(getPath('/test/asset.txt/asset.txt'), stream, function (err) {
                     assert(err);
-                    repository.deleteAsset('/test', function (err) {
+                    repository.deleteAsset(getPath('/test'), function (err) {
                       assert(err);
-                      repository.createAsset('/test/asset.txt', stream, function (err) {
+                      repository.createAsset(getPath('/test/asset.txt'), stream, function (err) {
                         assert(err);
-                        repository.getAsset('/test', function (err, stream) {
+                        repository.getAsset(getPath('/test'), function (err, stream) {
                           assert(err);
                           assert(!stream);
-                          repository.getAsset('/invalid.txt', function (err, stream) {
+                          repository.getAsset(getPath('/invalid.txt'), function (err, stream) {
                             assert(err);
                             assert(!stream);
-                            repository.deleteAsset('/invalid.txt', function (err, stream) {
+                            repository.deleteAsset(getPath('/invalid.txt'), function (err, stream) {
                               assert(err);
                               assert(!stream);
                               done();
@@ -216,16 +221,16 @@ it('test asset errors', function (done) {
 it('test create asset no callback', function () {
   var repository = getRepository();
   var stream = getReadStream('hello');
-  repository.createAsset('/test.txt', stream);
+  repository.createAsset(getPath('/test.txt'), stream);
 });
 
 it('test update asset no callback', function (done) {
   var repository = getRepository();
   var stream = getReadStream('hello');
-  repository.createAsset('/test.txt', stream, function (err) {
+  repository.createAsset(getPath('/test.txt'), stream, function (err) {
     assert(!err);
     stream = getReadStream('hello world!');
-    repository.updateAsset('/test.txt', stream);
+    repository.updateAsset(getPath('/test.txt'), stream);
     done();
   });
 });
@@ -233,11 +238,11 @@ it('test update asset no callback', function (done) {
 it('test update asset info', function (done) {
   var repository = getRepository();
   var stream = getReadStream('hello world!');
-  repository.createAsset('/test.txt', stream, function (err, info) {
+  repository.createAsset(getPath('/test.txt'), stream, function (err, info) {
     assert(!err);
     assert(!info.checkedOut);
     assert(!info.checkedOutBy);
-    repository.updateAssetInfo('/test.txt', {checkedOut: true, checkedOutBy: 'unittest'}, function (err, info) {
+    repository.updateAssetInfo(getPath('/test.txt'), {checkedOut: true, checkedOutBy: 'unittest'}, function (err, info) {
       assert(!err);
       assert(info.checkedOut);
       assert(info.checkedOutBy === 'unittest');
@@ -248,10 +253,10 @@ it('test update asset info', function (done) {
 
 it('test update asset info errors', function (done) {
   var repository = getRepository();
-  repository.updateAssetInfo('/invalid.txt', {checkedOut: true}, function (err, info) {
+  repository.updateAssetInfo(getPath('/invalid.txt'), {checkedOut: true}, function (err, info) {
     assert(err);
     assert(!info);
-    repository.updateAssetInfo('/', {checkedOut: true}, function (err, info) {
+    repository.updateAssetInfo(getPath('/'), {checkedOut: true}, function (err, info) {
       assert(err);
       assert(!info);
       done();
@@ -262,9 +267,9 @@ it('test update asset info errors', function (done) {
 it('test get asset thumbnail', function (done) {
   var repository = getRepository();
   var stream = getReadStream('hello tests!');
-  repository.createAsset('/test.txt', stream, function (err) {
+  repository.createAsset(getPath('/test.txt'), stream, function (err) {
     assert(!err);
-    repository.getAssetThumbnail('/test.txt', function (err, stream, contentType) {
+    repository.getAssetThumbnail(getPath('/test.txt'), function (err, stream, contentType) {
       assert(!err);
       assert(stream);
       assert(contentType === 'text/plain');
@@ -275,7 +280,7 @@ it('test get asset thumbnail', function (done) {
 
 it('test get asset thumbnail errors', function (done) {
   var repository = getRepository();
-  repository.getAssetThumbnail('/invalid.txt', function (err, stream, contentType) {
+  repository.getAssetThumbnail(getPath('/invalid.txt'), function (err, stream, contentType) {
     assert(err);
     assert(!stream);
     assert(!contentType);
@@ -290,9 +295,9 @@ it('test get asset thumbnail errors', function (done) {
 it('test get asset preview', function (done) {
   var repository = getRepository();
   var stream = getReadStream('hello tests!');
-  repository.createAsset('/test.txt', stream, function (err) {
+  repository.createAsset(getPath('/test.txt'), stream, function (err) {
     assert(!err);
-    repository.getAssetPreview('/test.txt', function (err, stream, contentType) {
+    repository.getAssetPreview(getPath('/test.txt'), function (err, stream, contentType) {
       assert(!err);
       assert(stream);
       assert(contentType === 'text/plain');
@@ -303,11 +308,11 @@ it('test get asset preview', function (done) {
 
 it('test get asset preview errors', function (done) {
   var repository = getRepository();
-  repository.getAssetPreview('/invalid.txt', function (err, stream, contentType) {
+  repository.getAssetPreview(getPath('/invalid.txt'), function (err, stream, contentType) {
     assert(err);
     assert(!stream);
     assert(!contentType);
-    repository.getAssetPreview('/', function (err, stream) {
+    repository.getAssetPreview(getPath('/'), function (err, stream) {
       assert(err);
       assert(!stream);
       done();
@@ -321,13 +326,13 @@ it('test find assets', function (done) {
     assert(!err);
     assert(matches);
     assert(matches.length === 0);
-    repository.createDirectory('/test', function (err) {
+    repository.createDirectory(getPath('/test'), function (err) {
       assert(!err);
       var stream = getReadStream('hello test');
-      repository.createAsset('/test/test.txt', stream, function (err) {
+      repository.createAsset(getPath('/test/test.txt'), stream, function (err) {
         assert(!err);
         stream = getReadStream('hello test');
-        repository.createAsset('/test/atest.txt', stream, function (err) {
+        repository.createAsset(getPath('/test/atest.txt'), stream, function (err) {
           assert(!err);
           repository.findAssets(/^test.txt$/g, function (err, matches) {
             assert(!err);
@@ -359,7 +364,7 @@ it('test find assets', function (done) {
 it('test subscriber', function (done) {
   var repository = getRepository();
   var subscriberId = '12345';
-  repository.list({path: '/', subscriberId}, function () {
+  repository.list({path: getPath('/'), subscriberId}, function () {
     assert(false, 'non-subscriber should not receive callback');
   });
 
@@ -368,7 +373,7 @@ it('test subscriber', function (done) {
     assert(!repository.isSubscribed(subscriberId));
     repository.subscribe(subscriberId);
     assert(repository.isSubscribed(subscriberId));
-    repository.list({path: '/', subscriberId}, function (err, list) {
+    repository.list({path: getPath('/'), subscriberId}, function (err, list) {
       assert(!err);
       assert(list);
       repository.unsubscribe(subscriberId);
@@ -401,11 +406,11 @@ it('test create progress', function (done) {
   repository.on('transferprogress', function (progress) {
     progressCalls.push(progress);
   });
-  repository.createAsset('/newasset.txt', stream, function (err) {
+  repository.createAsset(getPath('/newasset.txt'), stream, function (err) {
     assert(!err);
     assert(progressCalls.length === 2);
-    _verifyProgressEvent(progressCalls[0], '/newasset.txt', 'create', 'newasset.txt', 0);
-    _verifyProgressEvent(progressCalls[1], '/newasset.txt', 'create', 'newasset.txt', 13);
+    _verifyProgressEvent(progressCalls[0], getPath('/newasset.txt'), 'create', 'newasset.txt', 0);
+    _verifyProgressEvent(progressCalls[1], getPath('/newasset.txt'), 'create', 'newasset.txt', 13);
     done();
   });
 });
@@ -413,18 +418,18 @@ it('test create progress', function (done) {
 it('test update progress', function (done) {
   var repository = getRepository();
   var stream = getReadStream('progress test');
-  repository.createAsset('/newprogressasset.txt', stream, function (err) {
+  repository.createAsset(getPath('/newprogressasset.txt'), stream, function (err) {
     assert(!err);
     stream = getReadStream('updated progress text');
     var progressCalls = [];
     repository.on('transferprogress', function (progress) {
       progressCalls.push(progress);
     });
-    repository.updateAsset('/newprogressasset.txt', stream, function (err) {
+    repository.updateAsset(getPath('/newprogressasset.txt'), stream, function (err) {
       assert(!err);
       assert(progressCalls.length === 2);
-      _verifyProgressEvent(progressCalls[0], '/newprogressasset.txt', 'update', 'newprogressasset.txt', 0);
-      _verifyProgressEvent(progressCalls[1], '/newprogressasset.txt', 'update', 'newprogressasset.txt', 21);
+      _verifyProgressEvent(progressCalls[0], getPath('/newprogressasset.txt'), 'update', 'newprogressasset.txt', 0);
+      _verifyProgressEvent(progressCalls[1], getPath('/newprogressasset.txt'), 'update', 'newprogressasset.txt', 21);
       done();
     });
   });
@@ -433,19 +438,19 @@ it('test update progress', function (done) {
 it('test read progress', function (done) {
   var repository = getRepository();
   var stream = getReadStream('read test');
-  repository.createAsset('/readprogresstest.txt', stream, function (err) {
+  repository.createAsset(getPath('/readprogresstest.txt'), stream, function (err) {
     assert(!err);
     var progressCalls = [];
     repository.on('transferprogress', function (progress) {
       progressCalls.push(progress);
     });
-    repository.getAsset('/readprogresstest.txt', function (err, stream) {
+    repository.getAsset(getPath('/readprogresstest.txt'), function (err, stream) {
       assert(!err);
       assert(stream);
       stream.on('end', function () {
         assert(progressCalls.length === 2);
-        _verifyProgressEvent(progressCalls[0], '/readprogresstest.txt', 'read', 'readprogresstest.txt', 0);
-        _verifyProgressEvent(progressCalls[1], '/readprogresstest.txt', 'read', 'readprogresstest.txt', 9);
+        _verifyProgressEvent(progressCalls[0], getPath('/readprogresstest.txt'), 'read', 'readprogresstest.txt', 0);
+        _verifyProgressEvent(progressCalls[1], getPath('/readprogresstest.txt'), 'read', 'readprogresstest.txt', 9);
         done();
       });
     });
@@ -459,11 +464,11 @@ it('test intermediate progress', function (done) {
   repository.on('transferprogress', function (progress) {
     progressCalls.push(progress);
   });
-  repository.createAsset('/frequencytest.txt', stream, function (err) {
+  repository.createAsset(getPath('/frequencytest.txt'), stream, function (err) {
     assert(!err);
     assert(progressCalls.length === 2);
-    _verifyProgressEvent(progressCalls[0], '/frequencytest.txt', 'create', 'frequencytest.txt', 0);
-    _verifyProgressEvent(progressCalls[1], '/frequencytest.txt', 'create', 'frequencytest.txt', 14, true);
+    _verifyProgressEvent(progressCalls[0], getPath('/frequencytest.txt'), 'create', 'frequencytest.txt', 0);
+    _verifyProgressEvent(progressCalls[1], getPath('/frequencytest.txt'), 'create', 'frequencytest.txt', 14, true);
     done();
   });
 }).timeout(5000);
@@ -471,14 +476,14 @@ it('test intermediate progress', function (done) {
 it('test read no progress', function (done) {
   var repository = getRepository();
   var stream = getReadStream('no read please');
-  repository.createAsset('/noreadtest.txt', stream, function (err) {
+  repository.createAsset(getPath('/noreadtest.txt'), stream, function (err) {
     assert(!err);
     repository.on('transferprogress', function () {
       assert(false);
     });
-    repository.getAssetThumbnail('/noreadtest.txt', function (err) {
+    repository.getAssetThumbnail(getPath('/noreadtest.txt'), function (err) {
       assert(!err);
-      repository.getAssetPreview('/noreadtest.txt', function (err) {
+      repository.getAssetPreview(getPath('/noreadtest.txt'), function (err) {
         assert(!err);
         done();
       });
